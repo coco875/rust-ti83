@@ -1,0 +1,15 @@
+# Target WebAssembly renommé pour TI-83 Premium CE 
+# WebAssembly est utilisé comme intermédiaire car c'est le plus compatible avec ez80-clang
+[build]
+target = "wasm32-unknown-unknown"
+
+[target.wasm32-unknown-unknown]
+runner = "./ti83-runner"
+rustflags = ["--emit=llvm-ir"]
+
+[alias]
+# Aliases avec des noms explicites pour TI-83
+ti83-build = "run --target wasm32-unknown-unknown"
+ti83-run = "run --target wasm32-unknown-unknown"
+ez80-build = "run --target wasm32-unknown-unknown"
+ez80-run = "run --target wasm32-unknown-unknown"

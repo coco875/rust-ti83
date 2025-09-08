@@ -1,0 +1,17 @@
+[package]
+name = "rust-ti83"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+i24 = "2.1.0"
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
+[profile.dev]
+debug = false
+
+[profile.release]  
+debug = false
