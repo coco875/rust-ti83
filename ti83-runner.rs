@@ -69,8 +69,7 @@ fn extract_file_stem(file_path: &str) -> Option<String> {
 }
 
 fn find_latest_llvm_ir_file(elf_name: &str) -> Option<Vec<String>> {
-    let deps_dir = "target/wasm32-unknown-unknown/debug/deps";
-    
+    let deps_dir = "target/ez80-tice-none/release/deps";
     // Trouver tous les fichiers LLVM IR du projet principal
     let mut main_files = Vec::new();
     if let Ok(entries) = fs::read_dir(deps_dir) {
@@ -117,10 +116,7 @@ fn copy_and_clean_llvm_ir(src_path: &str, elf_name: &str) -> bool {
     // Nettoyer les attributs LLVM modernes incompatibles avec ez80-clang
     let cleaned_content = content
         .replace("wasm32-unknown-unknown", "ez80")
-        .replace("captures(none)", "")
-        .replace(" memory(argmem: readwrite)", "")
-        .replace("ptr noalias writeonly", "ptr")
-        .replace("ptr noalias readonly", "ptr");
+        .replace("captures(none)", "nocapture");
     
     // Écrire le fichier nettoyé
     fs::write(&dest_path, cleaned_content).unwrap_or_else(|_| {
