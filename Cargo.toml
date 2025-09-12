@@ -1,12 +1,10 @@
 [package]
 name = "rust-ti83"
 version = "0.1.0"
-edition = "2024"
-
-[dependencies]
+edition = "2021"
 
 [[bin]]
-name = "main"
+name = "demo"
 path = "src/main.rs"
 
 [profile.dev]

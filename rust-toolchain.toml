@@ -1,0 +1,6 @@
+[toolchain]
+# use an old version because are on llvm 15
+channel = "nightly-2023-03-03"
+components = [ "rustc" ]
+targets = [ "ez80-tice-none.json" ]
+profile = "default"

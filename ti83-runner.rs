@@ -14,11 +14,10 @@ fn main() {
     }
     
     let elf_path = &args[args.len() - 1];
-    let elf_name = Path::new(elf_path).file_stem().unwrap().to_str().unwrap();
+    let executable_name = Path::new(elf_path).file_stem().unwrap().to_str().unwrap();
     
     // Variables de configuration
     let cedev = "./CEdev";
-    let executable_name = "DEMO";
     
     println!("=== Build TI-83 Premium CE ===");
     println!("Source ELF: {}", elf_path);
@@ -28,30 +27,31 @@ fn main() {
     create_dirs();
     
     // Trouver le fichier LLVM IR le plus récent
-    let ll_path = find_latest_llvm_ir_file(elf_name);
+    let ll_path = find_latest_llvm_ir_file();
     if ll_path.is_none() {
-        eprintln!("❌ Fichier LLVM IR non trouvé pour {}", elf_name);
+        eprintln!("❌ Fichier LLVM IR non trouvé");
         exit(1);
     }
-    let ll_path = ll_path.unwrap()[0].clone();
-    
-    // Copier et nettoyer le fichier LLVM IR
-    if !copy_and_clean_llvm_ir(&ll_path, elf_name) {
-        exit(1);
+    let ll_path = ll_path.unwrap();
+
+    for (path, name) in &ll_path {
+        if !copy_and_clean_llvm_ir(path, name) {
+            exit(1);
+        }
     }
     
     // Transpiler LLVM IR vers assembleur
-    if !transpile_llvm_ir(cedev, elf_name) {
+    if !transpile_llvm_ir(cedev, &ll_path, executable_name) {
         exit(1);
     }
     
     // Compiler l'assembleur
-    if !compile_asm(cedev, elf_name) {
+    if !compile_asm(cedev, executable_name) {
         exit(1);
     }
     
     // Créer le fichier 8xp
-    if !make_8xp(cedev, elf_name, executable_name) {
+    if !make_8xp(cedev, executable_name) {
         exit(1);
     }
     
@@ -68,7 +68,7 @@ fn extract_file_stem(file_path: &str) -> Option<String> {
     Path::new(file_path).file_stem().and_then(|s| s.to_str()).map(|s| s.to_string()).map(|s| s.split('-').next().unwrap_or("").to_string())
 }
 
-fn find_latest_llvm_ir_file(elf_name: &str) -> Option<Vec<String>> {
+fn find_latest_llvm_ir_file() -> Option<Vec<(String, String)>> {
     let deps_dir = "target/ez80-tice-none/release/deps";
     // Trouver tous les fichiers LLVM IR du projet principal
     let mut main_files = Vec::new();
@@ -95,7 +95,7 @@ fn find_latest_llvm_ir_file(elf_name: &str) -> Option<Vec<String>> {
     for (path, name, _) in &main_files {
         if !libs.contains(name) {
             libs.insert(name.clone());
-            files.push(path.clone());
+            files.push((path.clone(), name.clone()));
             println!("📄 Fichier LLVM IR trouvé: {} ({})", path, name);
         }
     }
@@ -103,10 +103,10 @@ fn find_latest_llvm_ir_file(elf_name: &str) -> Option<Vec<String>> {
     Some(files)
 }
 
-fn copy_and_clean_llvm_ir(src_path: &str, elf_name: &str) -> bool {
+fn copy_and_clean_llvm_ir(src_path: &str, file: &str) -> bool {
     println!("🔧 Copie et nettoyage du fichier LLVM IR...");
-    let dest_path = format!("./incremental/{}.ll", elf_name);
-    
+    let dest_path = format!("./incremental/{}.ll", file);
+
     // Lire le fichier source
     let content = fs::read_to_string(src_path).unwrap_or_else(|_| {
         eprintln!("❌ Erreur lecture {}", src_path);
@@ -115,8 +115,7 @@ fn copy_and_clean_llvm_ir(src_path: &str, elf_name: &str) -> bool {
     
     // Nettoyer les attributs LLVM modernes incompatibles avec ez80-clang
     let cleaned_content = content
-        .replace("wasm32-unknown-unknown", "ez80")
-        .replace("captures(none)", "nocapture");
+        .replace("wasm32-unknown-unknown", "ez80");
     
     // Écrire le fichier nettoyé
     fs::write(&dest_path, cleaned_content).unwrap_or_else(|_| {
@@ -142,14 +141,35 @@ fn run_command(mut cmd: Command) -> bool {
     }
 }
 
-fn transpile_llvm_ir(cedev: &str, elf_name: &str) -> bool {
+fn transpile_llvm_ir(cedev: &str, ll_path: &Vec<(String, String)>, elf_name: &str) -> bool {
     println!("🔧 Transpilation LLVM IR vers assembleur...");
+    let mut cmd = Command::new(&format!("{}/bin/ez80-link", cedev));
+    let mut args: Vec<&str> = Vec::new();
+    args.push("--only-needed");
+    for (path, name) in ll_path {
+        if name.contains("panic_abort") || name.contains("proc_macro") {
+            continue;
+        }
+        args.push(path);
+    }
+    args.push("-o");
+    let output_path = format!("./incremental/{}.bc", elf_name);
+    args.push(&output_path);
+    cmd.args(&args);
+    if !run_command(cmd) {
+        return false;
+    }
+        
     let mut cmd = Command::new(&format!("{}/bin/ez80-clang", cedev));
-    cmd.args(&[
+    let mut args = vec![
         "-S",
-        &format!("./incremental/{}.ll", elf_name),
-        "-o", &format!("./incremental/{}.s", elf_name)
-    ]);
+        "-Oz",
+    ];
+    args.push(&output_path);
+    args.push("-o");
+    let output_path = format!("./incremental/{}.s", elf_name);
+    args.push(&output_path);
+    cmd.args(&args);
     run_command(cmd)
 }
 
@@ -179,14 +199,14 @@ fn compile_asm(cedev: &str, elf_name: &str) -> bool {
     run_command(cmd)
 }
 
-fn make_8xp(cedev: &str, elf_name: &str, executable_name: &str) -> bool {
+fn make_8xp(cedev: &str, executable_name: &str) -> bool {
     println!("🔧 Création du fichier 8xp...");
     let mut cmd = Command::new(&format!("{}/bin/convbin", cedev));
     cmd.args(&[
         "--oformat", "8xp",
         "--uppercase",
         "--name", executable_name,
-        "--input", &format!("incremental/{}.bin", elf_name),
+        "--input", &format!("incremental/{}.bin", executable_name),
         "--output", &format!("bin/{}.8xp", executable_name)
     ]);
     run_command(cmd)
