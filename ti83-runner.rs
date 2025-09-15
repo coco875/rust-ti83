@@ -112,13 +112,35 @@ fn copy_and_clean_llvm_ir(src_path: &str, file: &str) -> bool {
         eprintln!("❌ Erreur lecture {}", src_path);
         exit(1);
     });
-    
-    // Nettoyer les attributs LLVM modernes incompatibles avec ez80-clang
-    let cleaned_content = content
+    let content = content
         .replace("wasm32-unknown-unknown", "ez80");
+
+    // fix call convertion (ti flags)
+    let content = content
+        // sys/power.h
+        .replace("void @os_DisableAPD", "cc102 void @os_DisableAPD")
+        .replace("void @os_EnableAPD", "cc102 void @os_EnableAPD")
+        .replace("i8 @boot_GetBatteryStatus", "cc102 i8 @boot_GetBatteryStatus")
+        // ti/real.h
+        .replace("%real_t @os_Int24ToReal", "cc102 %real_t @os_Int24ToReal")
+        // ti/screen.h
+        .replace("void @os_NewLine", "cc102 void @os_NewLine")
+        .replace("void @os_MoveUp", "cc102 void @os_MoveUp")
+        .replace("void @os_MoveDown", "cc102 void @os_MoveDown")
+        .replace("void @os_HomeUp", "cc102 void @os_HomeUp")
+        .replace("void @os_ClrLCDFull", "cc102 void @os_ClrLCDFull")
+        .replace("void @os_ClrLCD", "cc102 void @os_ClrLCD")
+        .replace("void @os_ClrTxtShd", "cc102 void @os_ClrTxtShd")
+        // ti/ui.h
+        .replace("void @os_RunIndicOn", "cc102 void @os_RunIndicOn")
+        .replace("void @os_RunIndicOff", "cc102 void @os_RunIndicOff")
+        .replace("void @os_DrawStatusBar", "cc102 void @os_DrawStatusBar")
+        // ti/vars.h
+        .replace("void @os_ArcChk", "cc102 void @os_ArcChk")
+        .replace("void @os_DelRes", "cc102 void @os_DelRes");
     
     // Écrire le fichier nettoyé
-    fs::write(&dest_path, cleaned_content).unwrap_or_else(|_| {
+    fs::write(&dest_path, content).unwrap_or_else(|_| {
         eprintln!("❌ Erreur écriture {}", dest_path);
         exit(1);
     });
@@ -144,17 +166,17 @@ fn run_command(mut cmd: Command) -> bool {
 fn transpile_llvm_ir(cedev: &str, ll_path: &Vec<(String, String)>, elf_name: &str) -> bool {
     println!("🔧 Transpilation LLVM IR vers assembleur...");
     let mut cmd = Command::new(&format!("{}/bin/ez80-link", cedev));
-    let mut args: Vec<&str> = Vec::new();
-    args.push("--only-needed");
-    for (path, name) in ll_path {
+    let mut args: Vec<String> = Vec::new();
+    args.push("--only-needed".to_string());
+    for (_path, name) in ll_path {
         if name.contains("panic_abort") || name.contains("proc_macro") {
             continue;
         }
-        args.push(path);
+        args.push(format!("./incremental/{}.ll", name));
     }
-    args.push("-o");
+    args.push("-o".to_string());
     let output_path = format!("./incremental/{}.bc", elf_name);
-    args.push(&output_path);
+    args.push(output_path.clone());
     cmd.args(&args);
     if !run_command(cmd) {
         return false;

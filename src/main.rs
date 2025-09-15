@@ -19,11 +19,14 @@ fn panic(_panic: &core::panic::PanicInfo<'_>) -> ! {
     loop {}
 }
 
-
 extern "C" {
     fn os_ClrLCD();
     fn os_HomeUp();
     fn os_DrawStatusBar();
+}
+extern "Rust" {
     fn os_PutStrFull(str: *const u8) -> Int24;
-    fn os_GetCSC() -> i8;
+}
+extern "C" {
+    fn os_GetCSC() -> u8;
 }
