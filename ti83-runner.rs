@@ -69,7 +69,7 @@ fn extract_file_stem(file_path: &str) -> Option<String> {
 }
 
 fn find_latest_llvm_ir_file() -> Option<Vec<(String, String)>> {
-    let deps_dir = "target/ez80-tice-none/release/deps";
+    let deps_dir = "target/ez80-tice-none/ti83-build/deps";
     // Trouver tous les fichiers LLVM IR du projet principal
     let mut main_files = Vec::new();
     if let Ok(entries) = fs::read_dir(deps_dir) {

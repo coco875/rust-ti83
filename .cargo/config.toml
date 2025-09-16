@@ -8,4 +8,4 @@ runner = "./ti83-runner"
 rustflags = ["--emit=llvm-ir", "-Clinker-plugin-lto"]
 
 [alias]
-ti83-build = "run --target ez80-tice-none.json -Zbuild-std=core,alloc,compiler_builtins --profile ti83-build"
+ti83-build = "run --target ez80-tice-none.json -Zbuild-std=core,alloc --profile ti83-build"

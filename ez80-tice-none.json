@@ -1,5 +1,4 @@
 {
-  "abi": "eabi",
   "arch": "arm",
   "exe-suffix": ".8xp",
   "atomic-cas": false,
@@ -11,7 +10,7 @@
   "frame-pointer": "always",
   "linker": "./ti83-fake-linker",
   "linker-flavor": "ld.lld",
-  "llvm-target": "thumbv6m-none-eabi",
+  "llvm-target": "thumbv6m-none",
   "panic-strategy": "abort",
   "relocation-model": "static",
   "target-pointer-width": "32"
