@@ -1,5 +1,29 @@
 use std::path::Path;
 
+fn download_cedev() {
+    let cedev = "./CEdev";
+    if !Path::new(cedev).exists() {
+        // should be improve to support mac and windows
+        let status = std::process::Command::new("wget")
+            .args(&["-q", "https://github.com/CE-Programming/toolchain/releases/download/v13.0/CEdev-Linux.tar.gz"])
+            .status()
+            .expect("Failed to execute wget");
+        if !status.success() {
+            eprintln!("Failed to download CEdev");
+            std::process::exit(1);
+        }
+        let status = std::process::Command::new("tar")
+            .args(&["-xzf", "CEdev-Linux.tar.gz"])
+            .status()
+            .expect("Failed to execute tar");
+        if !status.success() {
+            eprintln!("Failed to extract CEdev");
+            std::process::exit(1);
+        }
+        let _ = std::fs::remove_file("CEdev-Linux.tar.gz");
+    }
+}
+
 fn create_dirs() {
     let _ = std::fs::create_dir_all("incremental");
 }
@@ -92,6 +116,10 @@ fn main() {
     }
     println!("Files: {:?}, Output: {}", files, output);
     create_dirs();
+
+    let cedev = "./CEdev";
+    download_cedev();
+
     // convert to llvm-ir files
     for file in &files {
         let out_file_name = if file.ends_with(".o") {
@@ -118,8 +146,7 @@ fn main() {
         input_files.push(out_file);
     }
 
-    let cedev = "./CEdev";
-
+    println!("Compile to bc");
     let mut cmd = std::process::Command::new(&format!("{}/bin/ez80-link", cedev));
     let mut args: Vec<String> = Vec::new();
     args.push("--only-needed".to_string());
@@ -133,7 +160,8 @@ fn main() {
     if !run_command(cmd) {
         std::process::exit(1);
     }
-        
+    
+    println!("Compile to asm");
     let mut cmd = std::process::Command::new(&format!("{}/bin/ez80-clang", cedev));
     let mut args = vec![
         "-S",
