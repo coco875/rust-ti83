@@ -15,10 +15,10 @@ jobs:
           submodules: "true"
       - name: Build
         run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 19 all
-          sudo apt install llvm-dis
+          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.7/LLVM-19.1.7-Linux-X64.tar.xz
+          tar -xf LLVM-19.1.7-Linux-X64.tar.xz
+          export PATH="$PATH:$PWD/LLVM-19.1.7-Linux-X64/bin"
+          llvm-dis --version
           rustup toolchain add nightly-2023-03-03
           rustup component add rust-src --toolchain nightly-2023-03-03-x86_64-unknown-linux-gnu
           rustc ti83-fake-linker.rs -o ti83-fake-linker
