@@ -1,0 +1,19 @@
+name: Linux Compile test
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          submodules: "true"
+      - name: Build
+        run: |
+          rustc ti83-fake-linker.rs -o ti83-fake-linker
+          cargo ti83-build
