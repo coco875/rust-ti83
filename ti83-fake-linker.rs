@@ -146,6 +146,7 @@ fn main() {
         input_files.push(out_file);
     }
 
+    println!("Compile to bc");
     let mut cmd = std::process::Command::new(&format!("{}/bin/ez80-link", cedev));
     let mut args: Vec<String> = Vec::new();
     args.push("--only-needed".to_string());
@@ -159,7 +160,8 @@ fn main() {
     if !run_command(cmd) {
         std::process::exit(1);
     }
-        
+    
+    println!("Compile to asm");
     let mut cmd = std::process::Command::new(&format!("{}/bin/ez80-clang", cedev));
     let mut args = vec![
         "-S",
