@@ -15,5 +15,6 @@ jobs:
           submodules: "true"
       - name: Build
         run: |
+          rustup toolchain add nightly-2023-03-03
           rustc ti83-fake-linker.rs -o ti83-fake-linker
           cargo ti83-build
