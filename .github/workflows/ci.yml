@@ -16,5 +16,6 @@ jobs:
       - name: Build
         run: |
           rustup toolchain add nightly-2023-03-03
+          rustup component add rust-src --toolchain nightly-2023-03-03-x86_64-unknown-linux-gnu
           rustc ti83-fake-linker.rs -o ti83-fake-linker
           cargo ti83-build
