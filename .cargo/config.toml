@@ -1,11 +1,8 @@
-# Target WebAssembly pour compilation vers ez80-TI83
-# WebAssembly est utilisé comme intermédiaire car c'est le plus compatible avec ez80-clang
 [build]
 target = "ez80-tice-none.json"
 
 [target.ez80-tice-none]
-runner = "./ti83-runner"
-rustflags = ["--emit=llvm-ir", "-Clinker-plugin-lto"]
+rustflags = ["-Clinker-plugin-lto"]
 
 [alias]
-ti83-build = "run --target ez80-tice-none.json -Zbuild-std=core,alloc --profile ti83-build"
+ti83-build = "build --target ez80-tice-none.json -Zbuild-std=core --profile ti83-build"
