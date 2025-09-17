@@ -107,7 +107,7 @@ fn main() {
         // copy file
         std::fs::copy(file, &out_file).expect("Erreur lors de la copie du fichier");
         println!("convert from {} into {}", file, out_file);
-        let mut cmd = std::process::Command::new("llvm-dis-15");
+        let mut cmd = std::process::Command::new("llvm-dis");
         cmd.arg(file);
         cmd.arg("-o");
         cmd.arg(&out_file);
