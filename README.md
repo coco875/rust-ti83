@@ -62,3 +62,15 @@ The current implementation leverages Rust nightly features for better control an
 - **24-bit integers:** Rust doesn't natively support i24 integers, which are common on the ez80 architecture
 - **Workaround:** Sometimes requires using structs with Rust calling conventions to emit i24 integers
 - **Drawbacks:** This approach is not ideal and can be cumbersome
+
+## Alternative approaches considered
+
+- **Forking Rust 1.69:** Modify Rust 1.69 to use the CE-Programming toolchain's LLVM 15 fork for direct ez80 assembly emission. This approach is being explored in [ez80-rust](https://github.com/ez80-rust), but requires modifications to a large codebase.
+
+- **Custom compiler backend:** Either add ez80 support to Cranelift or implement ez80 support in a newer LLVM version. There's an ongoing effort for z80 support in [cranelift-z80](https://github.com/zlfn/cranelift-z80), and CE-Programming has attempted this with their [LLVM fork](https://github.com/CE-Programming/llvm-project), though without success so far.
+
+- **LLVM IR to C transpilation:** Emit LLVM IR with a recent Rust version and transpile it to C using [llvm-cbe](https://github.com/JuliaHubOSS/llvm-cbe). This approach hasn't been tested yet but draws inspiration from [rust-gb](https://github.com/zlfn/rust-gb).
+
+- **Rust to C transpilation:** Use a Rust-to-C transpiler, but no mature solutions have been found yet. Additionally, Cargo integration remains uncertain.
+
+- **WebAssembly to C transpilation:** Emit WebAssembly with a recent Rust version and transpile to C using [wasm2c](https://github.com/WebAssembly/wabt/tree/main/wasm2c). This approach could potentially enable Go support on TI calculators through [TinyGo](https://tinygo.org/). It looks promising because WebAssembly is a stable target with extensive tooling ecosystem.
