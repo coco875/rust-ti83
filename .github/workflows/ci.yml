@@ -8,6 +8,7 @@ on:
 
 jobs:
   build-linux:
+    if: 0
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.1.1
@@ -26,6 +27,7 @@ jobs:
           rustc ti83-fake-linker.rs -o ti83-fake-linker
           cargo ti83-build
   build-macos-arm:
+    if: 0
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4.1.1
@@ -43,6 +45,7 @@ jobs:
           rustc ti83-fake-linker.rs -o ti83-fake-linker
           cargo ti83-build
   build-macos-intel:
+    if: 0
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v4.1.1

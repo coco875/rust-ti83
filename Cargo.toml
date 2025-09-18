@@ -9,6 +9,3 @@ path = "src/main.rs"
 
 [profile.ti83-build]
 inherits = "release"
-debug = false
-lto = "fat"
-opt-level = "s"

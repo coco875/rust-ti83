@@ -1,19 +1,57 @@
 {
-  "abi": "eabi",
-  "arch": "arm",
-  "exe-suffix": ".8xp",
-  "atomic-cas": false,
-  "c-enum-min-bits": 8,
-  "data-layout": "e-m:e-p:32:8-p1:16:8-p2:8:8-p3:16:8-p4:32:8-i16:8-i24:8-i32:8-i48:8-i64:8-i96:8-f32:8-f64:8-a:8-n8:16:24-S8",
-  "emit-debug-gdb-scripts": false,
+  "arch": "wasm32",
+  "binary-format": "wasm",
+  "crt-objects-fallback": "true",
+  "data-layout": "e-m:e-p:32:32-p10:8:8-p20:8:8-i64:64-i128:128-n32:64-S128-ni:1:10:20",
+  "dll-prefix": "",
+  "dll-suffix": ".wasm",
   "dynamic-linking": false,
-  "singlethread": true,
-  "frame-pointer": "always",
-  "linker": "./ti83-fake-linker",
-  "linker-flavor": "ld.lld",
-  "llvm-target": "armv4t-unknown-none",
+  "eh-frame-header": false,
+  "emit-debug-gdb-scripts": false,
+  "exe-suffix": ".wasm",
+  "generate-arange-section": false,
+  "has-thread-local": true,
+  "is-like-wasm": true,
+  "limit-rdylib-exports": false,
+  "linker": "rust-lld",
+  "linker-flavor": "wasm-lld",
+  "linker-is-gnu": false,
+  "lld-flavor": "wasm",
+  "llvm-target": "wasm32-unknown-unknown",
+  "max-atomic-width": 64,
+  "metadata": {
+    "description": "WebAssembly",
+    "host_tools": false,
+    "std": true,
+    "tier": 2
+  },
+  "only-cdylib": true,
+  "os": "unknown",
   "panic-strategy": "abort",
+  "pre-link-args": {
+    "wasm-lld": [
+      "-z",
+      "stack-size=0",
+      "--stack-first",
+      "--allow-undefined",
+      "--no-demangle",
+      "--no-entry"
+    ],
+    "wasm-lld-cc": [
+      "-Wl,-z",
+      "-Wl,stack-size=0",
+      "-Wl,--stack-first",
+      "-Wl,--allow-undefined",
+      "-Wl,--no-demangle",
+      "--target=wasm32-unknown-unknown",
+      "-Wl,--no-entry"
+    ]
+  },
   "relocation-model": "static",
+  "singlethread": true,
+  "target-family": [
+    "wasm"
+  ],
   "target-pointer-width": "32",
-  "vendor": "tios"
+  "tls-model": "local-exec"
 }
