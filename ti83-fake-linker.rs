@@ -3,24 +3,76 @@ use std::path::Path;
 fn download_cedev() {
     let cedev = "./CEdev";
     if !Path::new(cedev).exists() {
-        // should be improve to support mac and windows
-        let status = std::process::Command::new("wget")
-            .args(&["-q", "https://github.com/CE-Programming/toolchain/releases/download/v13.0/CEdev-Linux.tar.gz"])
-            .status()
-            .expect("Failed to execute wget");
-        if !status.success() {
-            eprintln!("Failed to download CEdev");
+        // should be improve to support windows
+        if std::env::consts::OS == "linux" {
+            let status = std::process::Command::new("wget")
+                .args(&["-q", "https://github.com/CE-Programming/toolchain/releases/download/v13.0/CEdev-Linux.tar.gz"])
+                .status()
+                .expect("Failed to execute wget");
+            if !status.success() {
+                eprintln!("Failed to download CEdev");
+                std::process::exit(1);
+            }
+            let status = std::process::Command::new("tar")
+                .args(&["-xzf", "CEdev-Linux.tar.gz"])
+                .status()
+                .expect("Failed to execute tar");
+            if !status.success() {
+                eprintln!("Failed to extract CEdev");
+                std::process::exit(1);
+            }
+            let _ = std::fs::remove_file("CEdev-Linux.tar.gz");
+        } else if std::env::consts::OS == "macos" {
+            if std::env::consts::ARCH == "aarch64" {
+                let status = std::process::Command::new("curl")
+                    .args(&["-L", "-o", "CEdev-macOS.dmg", "https://github.com/CE-Programming/toolchain/releases/download/v13.0/CEdev-macOS-arm.dmg"])
+                    .status()
+                    .expect("Failed to execute curl");
+                if !status.success() {
+                    eprintln!("Failed to download CEdev");
+                    std::process::exit(1);
+                }
+            } else {
+                let status = std::process::Command::new("curl")
+                    .args(&["-L", "-o", "CEdev-macOS.dmg", "https://github.com/CE-Programming/toolchain/releases/download/v13.0/CEdev-macOS-intel.dmg"])
+                    .status()
+                    .expect("Failed to execute curl");
+                if !status.success() {
+                    eprintln!("Failed to download CEdev");
+                    std::process::exit(1);
+                }
+            }
+            let status = std::process::Command::new("7z")
+                .args(&["x", "CEdev-macOS.dmg", "CE Programming Toolchain/CEdev/"])
+                .status()
+                .expect("Failed to execute 7z");
+            if !status.success() {
+                eprintln!("Failed to extract CEdev");
+                std::process::exit(1);
+            }
+            let status = std::process::Command::new("mv")
+                .args(&["CE Programming Toolchain/CEdev", "."])
+                .status()
+                .expect("Failed to execute mv");
+            if !status.success() {
+                eprintln!("Failed to move CEdev");
+                std::process::exit(1);
+            }
+            let status = std::process::Command::new("chmod")
+                .args(&["-R", "+x", "CEdev/bin"])
+                .status()
+                .expect("Failed to execute chmod");
+            if !status.success() {
+                eprintln!("Failed to chmod CEdev");
+                std::process::exit(1);
+            }
+
+            let _ = std::fs::remove_file("CEdev-macOS.dmg");
+            let _ = std::fs::remove_dir_all("CE Programming Toolchain");
+        } else {
+            eprintln!("CEdev not found and automatic download is only supported on Linux.");
             std::process::exit(1);
         }
-        let status = std::process::Command::new("tar")
-            .args(&["-xzf", "CEdev-Linux.tar.gz"])
-            .status()
-            .expect("Failed to execute tar");
-        if !status.success() {
-            eprintln!("Failed to extract CEdev");
-            std::process::exit(1);
-        }
-        let _ = std::fs::remove_file("CEdev-Linux.tar.gz");
     }
 }
 
