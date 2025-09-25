@@ -103,7 +103,7 @@ fn download_llvm_cbe() {
         } else if std::env::consts::OS == "macos" {
             if std::env::consts::ARCH == "aarch64" {
                 let status = std::process::Command::new("curl")
-                    .args(&["-L", "-o", "llvm-cbe-macos-latest-build.zip", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-macos-latest-build.zip"])
+                    .args(&["-L", "-o", "llvm-cbe-macos-latest-build.zip", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-macos-13-build.zip"])
                     .status()
                     .expect("Failed to execute curl");
                 if !status.success() {
@@ -120,8 +120,23 @@ fn download_llvm_cbe() {
                 }
                 let _ = std::fs::remove_file("llvm-cbe-macos-latest-build.zip");
             } else {
-                println!("No llvm-cbe build available for macOS Intel yet.");
-                std::process::exit(1);
+                let status = std::process::Command::new("curl")
+                    .args(&["-L", "-o", "llvm-cbe-macos-latest-build.zip", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-macos-latest-build.zip"])
+                    .status()
+                    .expect("Failed to execute curl");
+                if !status.success() {
+                    eprintln!("Failed to download llvm-cbe");
+                    std::process::exit(1);
+                }
+                let status = std::process::Command::new("unzip")
+                    .args(&["-q", "llvm-cbe-macos-latest-build.zip"])
+                    .status()
+                    .expect("Failed to execute unzip");
+                if !status.success() {
+                    eprintln!("Failed to extract llvm-cbe");
+                    std::process::exit(1);
+                }
+                let _ = std::fs::remove_file("llvm-cbe-macos-latest-build.zip");
             }
         } else {
             eprintln!("llvm-cbe not found and automatic download is only supported on Linux and macOS ARM.");
