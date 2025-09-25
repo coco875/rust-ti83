@@ -84,7 +84,7 @@ fn download_llvm_cbe() {
         // should be improve to support windows
         if std::env::consts::OS == "linux" {
             let status = std::process::Command::new("wget")
-                .args(&["-q", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-ubuntu-latest-build.zip"])
+                .args(&["-q", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-ubuntu-latest-build.zip?status=completed", "-O", "llvm-cbe-ubuntu-latest-build.zip"])
                 .status()
                 .expect("Failed to execute wget");
             if !status.success() {
@@ -103,7 +103,7 @@ fn download_llvm_cbe() {
         } else if std::env::consts::OS == "macos" {
             if std::env::consts::ARCH == "aarch64" {
                 let status = std::process::Command::new("curl")
-                    .args(&["-L", "-o", "llvm-cbe-macos-latest-build.zip", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-macos-13-build.zip"])
+                    .args(&["-L", "-o", "llvm-cbe-macos-latest-build.zip", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-macos-13-build.zip?status=completed"])
                     .status()
                     .expect("Failed to execute curl");
                 if !status.success() {
@@ -121,7 +121,7 @@ fn download_llvm_cbe() {
                 let _ = std::fs::remove_file("llvm-cbe-macos-latest-build.zip");
             } else {
                 let status = std::process::Command::new("curl")
-                    .args(&["-L", "-o", "llvm-cbe-macos-latest-build.zip", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-macos-latest-build.zip"])
+                    .args(&["-L", "-o", "llvm-cbe-macos-latest-build.zip", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-macos-latest-build.zip?status=completed"])
                     .status()
                     .expect("Failed to execute curl");
                 if !status.success() {
