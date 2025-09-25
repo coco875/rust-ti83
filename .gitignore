@@ -4,3 +4,4 @@ CEdev
 incremental
 bin
 ti83-fake-linker
+llvm-cbe

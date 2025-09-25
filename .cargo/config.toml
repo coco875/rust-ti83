@@ -5,4 +5,4 @@ target = "ez80-tice-none.json"
 rustflags = ["-Clinker-plugin-lto"]
 
 [alias]
-ti83-build = "build --target ez80-tice-none.json -Zbuild-std=core --profile ti83-build"
+ti83-build = "build --target ez80-tice-none.json -Zbuild-std=core,alloc --profile ti83-build"

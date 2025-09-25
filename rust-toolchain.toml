@@ -1,6 +1,6 @@
 [toolchain]
-# use an old version because are on llvm 15
-channel = "nightly-2023-03-03"
+# use rust 1.90
+channel = "nightly-2025-08-01"
 components = [ "rustc" ]
 targets = [ "ez80-tice-none.json" ]
 profile = "default"

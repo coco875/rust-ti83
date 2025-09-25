@@ -1,5 +1,7 @@
 use std::path::Path;
 
+use std::collections::HashSet;
+
 fn download_cedev() {
     let cedev = "./CEdev";
     if !Path::new(cedev).exists() {
@@ -76,6 +78,58 @@ fn download_cedev() {
     }
 }
 
+fn download_llvm_cbe() {
+    let llvm_cbe = "./llvm-cbe";
+    if !Path::new(llvm_cbe).exists() {
+        // should be improve to support windows
+        if std::env::consts::OS == "linux" {
+            let status = std::process::Command::new("wget")
+                .args(&["-q", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-ubuntu-latest-build.zip"])
+                .status()
+                .expect("Failed to execute wget");
+            if !status.success() {
+                eprintln!("Failed to download llvm-cbe");
+                std::process::exit(1);
+            }
+            let status = std::process::Command::new("unzip")
+                .args(&["-q", "llvm-cbe-ubuntu-latest-build.zip"])
+                .status()
+                .expect("Failed to execute unzip");
+            if !status.success() {
+                eprintln!("Failed to extract llvm-cbe");
+                std::process::exit(1);
+            }
+            let _ = std::fs::remove_file("llvm-cbe-ubuntu-latest-build.zip");
+        } else if std::env::consts::OS == "macos" {
+            if std::env::consts::ARCH == "aarch64" {
+                let status = std::process::Command::new("curl")
+                    .args(&["-L", "-o", "llvm-cbe-macos-latest-build.zip", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-macos-latest-build.zip"])
+                    .status()
+                    .expect("Failed to execute curl");
+                if !status.success() {
+                    eprintln!("Failed to download llvm-cbe");
+                    std::process::exit(1);
+                }
+                let status = std::process::Command::new("unzip")
+                    .args(&["-q", "llvm-cbe-macos-latest-build.zip"])
+                    .status()
+                    .expect("Failed to execute unzip");
+                if !status.success() {
+                    eprintln!("Failed to extract llvm-cbe");
+                    std::process::exit(1);
+                }
+                let _ = std::fs::remove_file("llvm-cbe-macos-latest-build.zip");
+            } else {
+                println!("No llvm-cbe build available for macOS Intel yet.");
+                std::process::exit(1);
+            }
+        } else {
+            eprintln!("llvm-cbe not found and automatic download is only supported on Linux and macOS ARM.");
+            std::process::exit(1);
+        }
+    }
+}
+
 fn create_dirs() {
     let _ = std::fs::create_dir_all("incremental");
 }
@@ -109,9 +163,16 @@ fn patch_file(file: &str) {
         .replace("void @os_ArcChk", "cc102 void @os_ArcChk")
         .replace("void @os_DelRes", "cc102 void @os_DelRes");
 
-    // let patched_content = patched_content
-    //     // remove fastcc
-    //     .replace("fastcc", "ccc");
+    let patched_content = patched_content
+        .replace("\nvoid _ZN5alloc7raw_vec19RawVec_EC_LT_EC_T_EC_C_EC_A_EC_GT_EC_8grow_one17he0193f6121e00d72E(void* _38);", "");
+
+    std::fs::write(file, patched_content).expect("Error writing patched file");
+}
+
+fn patch_asm(file: &str) {
+    let content = std::fs::read_to_string(file).expect("Error reading file");
+    let patched_content = content
+        .replace(".unlikely.", "");
 
     std::fs::write(file, patched_content).expect("Error writing patched file");
 }
@@ -124,7 +185,7 @@ fn ignore(arg: &str) -> bool {
     if arg.starts_with("-plugin-opt") {
         return true;
     }
-    matches!(arg, "--gc-sections" | "--as-needed" | "--eh-frame-hdr")
+    matches!(arg, "--gc-sections" | "--as-needed" | "--eh-frame-hdr" | "--strip-debug")
 }
 
 fn run_command(mut cmd: std::process::Command) -> bool {
@@ -145,7 +206,8 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let mut iter = args.iter();
     let mut files = Vec::new();
-    let mut input_files = Vec::new();
+    let mut input_c_files = Vec::new();
+    let mut input_bc_files = Vec::new();
     let mut output = String::new();
     let elf_name = "output";
     iter.next(); // Skip program name
@@ -171,6 +233,7 @@ fn main() {
 
     let cedev = "./CEdev";
     download_cedev();
+    download_llvm_cbe();
 
     // convert to llvm-ir files
     for file in &files {
@@ -183,26 +246,63 @@ fn main() {
         if out_file_name == "symbols" {
             continue; // skip symbols.o
         }
-        let out_file = format!("incremental/{}.ll", out_file_name);
+        let out_file = format!("incremental/{}.cbe.c", out_file_name);
         // copy file
         std::fs::copy(file, &out_file).expect("Erreur lors de la copie du fichier");
         println!("convert from {} into {}", file, out_file);
-        let mut cmd = std::process::Command::new("llvm-dis");
+        let mut cmd = std::process::Command::new("./llvm-cbe");
         cmd.arg(file);
+        cmd.arg("-O3");
         cmd.arg("-o");
         cmd.arg(&out_file);
         if !run_command(cmd) {
             std::process::exit(1);
         }
         patch_file(&out_file);
-        input_files.push(out_file);
+        input_c_files.push(out_file);
     }
 
     println!("Compile to bc");
+    for name in &input_c_files {
+        let mut cmd = std::process::Command::new(&format!("{}/bin/ez80-clang", cedev));
+        let mut args: Vec<String> = vec![
+            "-c".to_string(),
+            "-emit-llvm".to_string(),
+            "-Wall".to_string(),
+            "-Wextra".to_string(),
+            "-Wno-incompatible-library-redeclaration".to_string(),
+            "-Wno-unused-parameter".to_string(),
+            "-Wno-unused-variable".to_string(),
+            "-Wno-unused-function".to_string(),
+            "-Wno-parentheses-equality".to_string(),
+            "-Wno-unused-but-set-variable".to_string(),
+            "-Oz".to_string(),
+            "-nostdinc".to_string(),
+            "-isystem".to_string(),
+            format!("{}/include", cedev),
+            "-D__TICE__=1".to_string(),
+            "-fno-threadsafe-statics".to_string(),
+            "-Xclang".to_string(),
+            "-fforce-mangle-main-argc-argv".to_string(),
+            "-mllvm".to_string(),
+            "-profile-guided-section-prefix=false".to_string(),
+            name.clone(),
+            "-o".to_string(),
+        ];
+        let output_path = format!("./incremental/{}.bc", Path::new(name).file_stem().unwrap().to_string_lossy());
+        args.push(output_path.clone());
+        cmd.args(&args);
+        if !run_command(cmd) {
+            std::process::exit(1);
+        }
+        input_bc_files.push(output_path);
+    }
+
     let mut cmd = std::process::Command::new(&format!("{}/bin/ez80-link", cedev));
     let mut args: Vec<String> = Vec::new();
     args.push("--only-needed".to_string());
-    for name in input_files {
+    args.push("--internalize".to_string());
+    for name in input_bc_files {
         args.push(name);
     }
     args.push("-o".to_string());
@@ -228,6 +328,7 @@ fn main() {
         println!("Fail to create asm");
         std::process::exit(1);
     }
+    patch_asm(&output_path);
     let mut cmd = std::process::Command::new(&format!("{}/bin/fasmg", cedev));
     cmd.args(&[
         "-v1",
