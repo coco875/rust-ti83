@@ -19,7 +19,6 @@ jobs:
           rustup toolchain add nightly-2025-08-01
           rustup component add rust-src --toolchain nightly-2025-08-01-x86_64-unknown-linux-gnu
           # build
-          rustc ti83-fake-linker.rs -o ti83-fake-linker
           cargo ti83-build
   build-macos-arm:
     runs-on: macos-latest
@@ -33,7 +32,6 @@ jobs:
           rustup toolchain add nightly-2025-08-01
           rustup component add rust-src --toolchain nightly-2025-08-01-aarch64-apple-darwin
           # build
-          rustc ti83-fake-linker.rs -o ti83-fake-linker
           cargo ti83-build
   build-macos-intel:
     runs-on: macos-13
@@ -47,6 +45,5 @@ jobs:
           rustup toolchain add nightly-2025-08-01
           rustup component add rust-src --toolchain nightly-2025-08-01-x86_64-apple-darwin
           # build
-          rustc ti83-fake-linker.rs -o ti83-fake-linker
           cargo ti83-build
   

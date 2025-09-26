@@ -1,150 +1,5 @@
 use std::path::Path;
 
-use std::collections::HashSet;
-
-fn download_cedev() {
-    let cedev = "./CEdev";
-    if !Path::new(cedev).exists() {
-        // should be improve to support windows
-        if std::env::consts::OS == "linux" {
-            let status = std::process::Command::new("wget")
-                .args(&["-q", "https://github.com/CE-Programming/toolchain/releases/download/v13.0/CEdev-Linux.tar.gz"])
-                .status()
-                .expect("Failed to execute wget");
-            if !status.success() {
-                eprintln!("Failed to download CEdev");
-                std::process::exit(1);
-            }
-            let status = std::process::Command::new("tar")
-                .args(&["-xzf", "CEdev-Linux.tar.gz"])
-                .status()
-                .expect("Failed to execute tar");
-            if !status.success() {
-                eprintln!("Failed to extract CEdev");
-                std::process::exit(1);
-            }
-            let _ = std::fs::remove_file("CEdev-Linux.tar.gz");
-        } else if std::env::consts::OS == "macos" {
-            if std::env::consts::ARCH == "aarch64" {
-                let status = std::process::Command::new("curl")
-                    .args(&["-L", "-o", "CEdev-macOS.dmg", "https://github.com/CE-Programming/toolchain/releases/download/v13.0/CEdev-macOS-arm.dmg"])
-                    .status()
-                    .expect("Failed to execute curl");
-                if !status.success() {
-                    eprintln!("Failed to download CEdev");
-                    std::process::exit(1);
-                }
-            } else {
-                let status = std::process::Command::new("curl")
-                    .args(&["-L", "-o", "CEdev-macOS.dmg", "https://github.com/CE-Programming/toolchain/releases/download/v13.0/CEdev-macOS-intel.dmg"])
-                    .status()
-                    .expect("Failed to execute curl");
-                if !status.success() {
-                    eprintln!("Failed to download CEdev");
-                    std::process::exit(1);
-                }
-            }
-            let status = std::process::Command::new("7z")
-                .args(&["x", "CEdev-macOS.dmg", "CE Programming Toolchain/CEdev/"])
-                .status()
-                .expect("Failed to execute 7z");
-            if !status.success() {
-                eprintln!("Failed to extract CEdev");
-                std::process::exit(1);
-            }
-            let status = std::process::Command::new("mv")
-                .args(&["CE Programming Toolchain/CEdev", "."])
-                .status()
-                .expect("Failed to execute mv");
-            if !status.success() {
-                eprintln!("Failed to move CEdev");
-                std::process::exit(1);
-            }
-            let status = std::process::Command::new("chmod")
-                .args(&["-R", "+x", "CEdev/bin"])
-                .status()
-                .expect("Failed to execute chmod");
-            if !status.success() {
-                eprintln!("Failed to chmod CEdev");
-                std::process::exit(1);
-            }
-
-            let _ = std::fs::remove_file("CEdev-macOS.dmg");
-            let _ = std::fs::remove_dir_all("CE Programming Toolchain");
-        } else {
-            eprintln!("CEdev not found and automatic download is only supported on Linux.");
-            std::process::exit(1);
-        }
-    }
-}
-
-fn download_llvm_cbe() {
-    let llvm_cbe = "./llvm-cbe";
-    if !Path::new(llvm_cbe).exists() {
-        // should be improve to support windows
-        if std::env::consts::OS == "linux" {
-            let status = std::process::Command::new("wget")
-                .args(&["-q", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-ubuntu-latest-build.zip?status=completed", "-O", "llvm-cbe-ubuntu-latest-build.zip"])
-                .status()
-                .expect("Failed to execute wget");
-            if !status.success() {
-                eprintln!("Failed to download llvm-cbe");
-                std::process::exit(1);
-            }
-            let status = std::process::Command::new("unzip")
-                .args(&["-q", "llvm-cbe-ubuntu-latest-build.zip"])
-                .status()
-                .expect("Failed to execute unzip");
-            if !status.success() {
-                eprintln!("Failed to extract llvm-cbe");
-                std::process::exit(1);
-            }
-            let _ = std::fs::remove_file("llvm-cbe-ubuntu-latest-build.zip");
-        } else if std::env::consts::OS == "macos" {
-            if std::env::consts::ARCH == "aarch64" {
-                let status = std::process::Command::new("curl")
-                    .args(&["-L", "-o", "llvm-cbe-macos-latest-build.zip", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-macos-latest-build.zip?status=completed"])
-                    .status()
-                    .expect("Failed to execute curl");
-                if !status.success() {
-                    eprintln!("Failed to download llvm-cbe");
-                    std::process::exit(1);
-                }
-                let status = std::process::Command::new("unzip")
-                    .args(&["-q", "llvm-cbe-macos-latest-build.zip"])
-                    .status()
-                    .expect("Failed to execute unzip");
-                if !status.success() {
-                    eprintln!("Failed to extract llvm-cbe");
-                    std::process::exit(1);
-                }
-                let _ = std::fs::remove_file("llvm-cbe-macos-latest-build.zip");
-            } else {
-                let status = std::process::Command::new("curl")
-                    .args(&["-L", "-o", "llvm-cbe-macos-latest-build.zip", "https://nightly.link/coco875/llvm-cbe/workflows/main/master/llvm-cbe-macos-13-build.zip?status=completed"])
-                    .status()
-                    .expect("Failed to execute curl");
-                if !status.success() {
-                    eprintln!("Failed to download llvm-cbe");
-                    std::process::exit(1);
-                }
-                let status = std::process::Command::new("unzip")
-                    .args(&["-q", "llvm-cbe-macos-latest-build.zip"])
-                    .status()
-                    .expect("Failed to execute unzip");
-                if !status.success() {
-                    eprintln!("Failed to extract llvm-cbe");
-                    std::process::exit(1);
-                }
-                let _ = std::fs::remove_file("llvm-cbe-macos-latest-build.zip");
-            }
-        } else {
-            eprintln!("llvm-cbe not found and automatic download is only supported on Linux and macOS ARM.");
-            std::process::exit(1);
-        }
-    }
-}
-
 fn create_dirs() {
     let _ = std::fs::create_dir_all("incremental");
 }
@@ -193,14 +48,14 @@ fn patch_asm(file: &str) {
 }
 
 fn should_skip_next(arg: &str) -> bool {
-    matches!(arg, "-flavor" | "-L" | "-Bstatic" | "-Bdynamic" | "-z")
+    matches!(arg, "-flavor" | "-L" | "-z")
 }
 
 fn ignore(arg: &str) -> bool {
     if arg.starts_with("-plugin-opt") {
         return true;
     }
-    matches!(arg, "--gc-sections" | "--as-needed" | "--eh-frame-hdr" | "--strip-debug")
+    matches!(arg, "--gc-sections" | "--as-needed" | "--eh-frame-hdr" | "--strip-debug" | "-Bstatic" | "-Bdynamic")
 }
 
 fn run_command(mut cmd: std::process::Command) -> bool {
@@ -247,34 +102,40 @@ fn main() {
     create_dirs();
 
     let cedev = "./CEdev";
-    download_cedev();
-    download_llvm_cbe();
 
     // convert to llvm-ir files
     for file in &files {
-        let out_file_name = if file.ends_with(".o") {
-            Path::new(file).file_stem().unwrap().to_string_lossy().to_string()
+        if file.ends_with(".o") {
+            let out_file_name = Path::new(file).file_stem().unwrap().to_string_lossy().to_string();
+            if out_file_name == "symbols" {
+                continue; // skip symbols.o
+            }
+            let out_file = format!("incremental/{}.cbe.c", out_file_name);
+            // copy file
+            std::fs::copy(file, &out_file).expect("Erreur lors de la copie du fichier");
+            println!("convert from {} into {}", file, out_file);
+            let mut cmd = std::process::Command::new("./llvm-cbe");
+            cmd.arg(file);
+            cmd.arg("-O3");
+            cmd.arg("-o");
+            cmd.arg(&out_file);
+            if !run_command(cmd) {
+                std::process::exit(1);
+            }
+            patch_file(&out_file);
+            input_c_files.push(out_file);
+        } else if file.ends_with(".c") {
+            let out_file = file.to_string();
+            input_c_files.push(out_file);
         } else {
+            if file.contains("libcompiler_builtins") {
+                println!("skip libcompiler_builtins");
+                continue;
+            }
             println!("unknown file type: {}", file);
             std::process::exit(1);
         };
-        if out_file_name == "symbols" {
-            continue; // skip symbols.o
-        }
-        let out_file = format!("incremental/{}.cbe.c", out_file_name);
-        // copy file
-        std::fs::copy(file, &out_file).expect("Erreur lors de la copie du fichier");
-        println!("convert from {} into {}", file, out_file);
-        let mut cmd = std::process::Command::new("./llvm-cbe");
-        cmd.arg(file);
-        cmd.arg("-O3");
-        cmd.arg("-o");
-        cmd.arg(&out_file);
-        if !run_command(cmd) {
-            std::process::exit(1);
-        }
-        patch_file(&out_file);
-        input_c_files.push(out_file);
+        
     }
 
     println!("Compile to bc");
