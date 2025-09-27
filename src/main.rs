@@ -4,18 +4,16 @@ mod allocator;
 extern crate alloc;
 
 use alloc::string::String;
-use alloc::ffi::CString;
 
 #[no_mangle]
 unsafe fn main() -> i32 {
     let str = String::from("Hello from Rust allocator!");
-    let cstring = CString::new(str.clone()).unwrap();
     os::clr_lcd();
     os::home_up();
     os::draw_status_bar();
-    os::put_str_full(c"Hello world from Rust!".as_ptr());
+    os::put_str_full("Hello world from Rust!");
     os::new_line();
-    os::put_str_full(cstring.as_ptr());
+    os::put_str_full(&str);
     // wait for key press
     while os::get_csc() == 0 {}
     0
@@ -27,6 +25,8 @@ fn panic(_panic: &core::panic::PanicInfo<'_>) -> ! {
 }
 
 mod os {
+    use alloc::ffi::CString;
+
 extern "C" {
     fn wrapper_os_ClrLCD();
     fn wrapper_os_HomeUp();
@@ -44,8 +44,9 @@ pub fn home_up() {
 pub fn draw_status_bar() {
     unsafe { os_DrawStatusBar() }
 }
-pub fn put_str_full(str: *const u8) -> i32 {
-    unsafe { wrapper_os_PutStrFull(str) }
+pub fn put_str_full(str: &str) -> i32 {
+    let cstr = CString::new(str).unwrap();
+    unsafe { wrapper_os_PutStrFull(cstr.as_ptr()) }
 }
 pub fn get_csc() -> u8 {
     unsafe { os_GetCSC() }
