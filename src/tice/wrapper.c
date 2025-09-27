@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <tice.h>
 
+// wrap function who have uint24_t type or the tiflags call convention
+
 void* wrapper_malloc(uint32_t size) {
     return malloc(size);
 }

@@ -1,5 +1,5 @@
-use std::process::Command;
 use std::path::Path;
+use std::process::Command;
 
 fn download_cedev() {
     let cedev = "./CEdev";
@@ -159,6 +159,6 @@ fn main() {
             panic!("Failed to build ti83-fake-linker");
         }
         println!("cargo:rerun-if-changed=ti83-fake-linker.rs");
-        println!("cargo:rustc-link-arg-bins=src/wrapper.c");
+        println!("cargo:rustc-link-arg-bins=src/tice/wrapper.c");
     }
 }
