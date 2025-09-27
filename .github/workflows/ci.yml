@@ -46,4 +46,17 @@ jobs:
           rustup component add rust-src --toolchain nightly-2025-08-01-x86_64-apple-darwin
           # build
           cargo ti83-build
-  
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          submodules: "true"
+      - name: Setup and Build
+        run: |
+          # setup
+          rustup toolchain add nightly-2025-08-01
+          rustup component add rust-src --toolchain nightly-2025-08-01-x86_64-pc-windows-msvc
+          # build
+          cargo ti83-build
