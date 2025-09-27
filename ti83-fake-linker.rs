@@ -4,41 +4,6 @@ fn create_dirs() {
     let _ = std::fs::create_dir_all("incremental");
 }
 
-fn patch_file(file: &str) {
-    let content = std::fs::read_to_string(file).expect("Error reading file");
-    let patched_content = content
-        .replace("armv4t-unknown-none", "ez80");
-
-    // fix call convertion (ti flags)
-    let patched_content = patched_content
-        // sys/power.h
-        .replace("void @os_DisableAPD", "cc102 void @os_DisableAPD")
-        .replace("void @os_EnableAPD", "cc102 void @os_EnableAPD")
-        .replace("i8 @boot_GetBatteryStatus", "cc102 i8 @boot_GetBatteryStatus")
-        // ti/real.h
-        .replace("%real_t @os_Int24ToReal", "cc102 %real_t @os_Int24ToReal")
-        // ti/screen.h
-        .replace("void @os_NewLine", "cc102 void @os_NewLine")
-        .replace("void @os_MoveUp", "cc102 void @os_MoveUp")
-        .replace("void @os_MoveDown", "cc102 void @os_MoveDown")
-        .replace("void @os_HomeUp", "cc102 void @os_HomeUp")
-        .replace("void @os_ClrLCDFull", "cc102 void @os_ClrLCDFull")
-        .replace("void @os_ClrLCD", "cc102 void @os_ClrLCD")
-        .replace("void @os_ClrTxtShd", "cc102 void @os_ClrTxtShd")
-        // ti/ui.h
-        .replace("void @os_RunIndicOn", "cc102 void @os_RunIndicOn")
-        .replace("void @os_RunIndicOff", "cc102 void @os_RunIndicOff")
-        .replace("void @os_DrawStatusBar", "cc102 void @os_DrawStatusBar")
-        // ti/vars.h
-        .replace("void @os_ArcChk", "cc102 void @os_ArcChk")
-        .replace("void @os_DelRes", "cc102 void @os_DelRes");
-
-    let patched_content = patched_content
-        .replace("\nvoid _ZN5alloc7raw_vec19RawVec_EC_LT_EC_T_EC_C_EC_A_EC_GT_EC_8grow_one17he0193f6121e00d72E(void* _38);", "");
-
-    std::fs::write(file, patched_content).expect("Error writing patched file");
-}
-
 fn patch_asm(file: &str) {
     let content = std::fs::read_to_string(file).expect("Error reading file");
     let patched_content = content
@@ -122,7 +87,6 @@ fn main() {
             if !run_command(cmd) {
                 std::process::exit(1);
             }
-            patch_file(&out_file);
             input_c_files.push(out_file);
         } else if file.ends_with(".c") {
             let out_file = file.to_string();
