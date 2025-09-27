@@ -70,8 +70,25 @@ fn download_cedev() {
 
             let _ = std::fs::remove_file("CEdev-macOS.dmg");
             let _ = std::fs::remove_dir_all("CE Programming Toolchain");
+        } else if std::env::consts::OS == "windows" {
+            let status = std::process::Command::new("curl")
+                .args(&["-L", "-o", "CEdev-Windows.zip", "https://github.com/CE-Programming/toolchain/releases/download/v13.0/CEdev-Windows.zip"])
+                .status()
+                .expect("Failed to execute curl");
+            if !status.success() {
+                eprintln!("Failed to download CEdev");
+                std::process::exit(1);
+            }
+            let status = std::process::Command::new("tar")
+                .args(&["-xf", "CEdev-Windows.zip"])
+                .status()
+                .expect("Failed to execute tar");
+            if !status.success() {
+                eprintln!("Failed to extract CEdev");
+                std::process::exit(1);
+            }
         } else {
-            eprintln!("CEdev not found and automatic download is only supported on Linux.");
+            eprintln!("CEdev not found and automatic download is only supported on Linux, Macos and Windows.");
             std::process::exit(1);
         }
     }
