@@ -66,7 +66,7 @@ fn main() {
     println!("Files: {:?}, Output: {}", files, output);
     create_dirs();
 
-    let cedev = "./CEdev";
+    let cedev = "CEdev";
 
     // convert to llvm-ir files
     for file in &files {
