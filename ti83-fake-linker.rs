@@ -66,7 +66,7 @@ fn main() {
     println!("Files: {:?}, Output: {}", files, output);
     create_dirs();
 
-    let cedev = "./CEdev";
+    let cedev = std::path::absolute("CEdev").unwrap().to_string_lossy().to_string();
 
     // convert to llvm-ir files
     for file in &files {
@@ -181,13 +181,13 @@ fn main() {
         "-i", "PREFER_OS_LIBC := 1",
         "-i", "ALLOCATOR_STANDARD := 1",
         "-i", "__TICE__ := 1",
-        "-i", &format!("include \"{}/meta/linker_script\"", cedev),
+        "-i", &format!("include '{}/meta/linker_script'", cedev),
         "-i", "range .bss $D052C6 : $D13FD8",
         "-i", "provide __stack = $D1A87E",
         "-i", "locate .header at $D1A87F",
         "-i", "map",
-        "-i", &format!("source \"{}/lib/crt/crt0.src\", \"./incremental/{}.s\"", cedev, elf_name),
-        "-i", &format!("library \"{}/lib/libload/fatdrvce.lib\", \"{}/lib/libload/fileioc.lib\", \"{}/lib/libload/fontlibc.lib\", \"{}/lib/libload/graphx.lib\", \"{}/lib/libload/keypadc.lib\", \"{}/lib/libload/msddrvce.lib\", \"{}/lib/libload/srldrvce.lib\", \"{}/lib/libload/usbdrvce.lib\"", cedev, cedev, cedev, cedev, cedev, cedev, cedev, cedev),
+        "-i", &format!("source '{}/lib/crt/crt0.src', './incremental/{}.s'", cedev, elf_name),
+        "-i", &format!("library '{}/lib/libload/fatdrvce.lib', '{}/lib/libload/fileioc.lib', '{}/lib/libload/fontlibc.lib', '{}/lib/libload/graphx.lib', '{}/lib/libload/keypadc.lib', '{}/lib/libload/msddrvce.lib', '{}/lib/libload/srldrvce.lib', '{}/lib/libload/usbdrvce.lib'", cedev, cedev, cedev, cedev, cedev, cedev, cedev, cedev),
         &format!("incremental/{}.bin", elf_name)
     ]);
     if !run_command(cmd) {
