@@ -181,7 +181,7 @@ fn main() {
         "-i", "PREFER_OS_LIBC := 1",
         "-i", "ALLOCATOR_STANDARD := 1",
         "-i", "__TICE__ := 1",
-        "-i", &format!("include \"{}/meta/linker_script\"", cedev),
+        "-i", &format!("include '{}/meta/linker_script'", cedev),
         "-i", "range .bss $D052C6 : $D13FD8",
         "-i", "provide __stack = $D1A87E",
         "-i", "locate .header at $D1A87F",
